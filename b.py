@@ -306,7 +306,7 @@ async def systeminfo_handler(event):
 # ============================================
 # /cmd command
 # ============================================
-@bot.on(events.NewMessage(pattern=r'/cmd\s+(.+)')
+@bot.on(events.NewMessage(pattern=r'/cmd\s+(.+)'))
 async def cmd_handler(event):
     if not is_authorized(event.sender_id):
         await event.reply("⛔ Unauthorized")
@@ -376,4 +376,5 @@ if __name__ == '__main__':
     print("=" * 60 + "\n")
     
     bot.run_until_disconnected()
+
 
