@@ -14,7 +14,7 @@ import socket
 from datetime import datetime
 from telethon import TelegramClient, events
 import cv2
-import winreg
+#import winreg
 
 # ============================================
 # INTERNET CHECK LOGIC (Top of script)
